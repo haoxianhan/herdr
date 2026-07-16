@@ -4568,6 +4568,19 @@ mod tests {
     }
 
     #[test]
+    fn route_client_input_ctrl_bracket_closes_navigate_mode() {
+        let mut app = test_app();
+        app.state.workspaces = vec![Workspace::test_new("test")];
+        app.state.active = Some(0);
+        app.state.selected = 0;
+        app.state.mode = Mode::Navigate;
+
+        app.route_client_input(b"\x1b[91;5u".to_vec());
+
+        assert_eq!(app.state.mode, Mode::Terminal);
+    }
+
+    #[test]
     fn route_client_input_q_detaches_in_persistence_mode() {
         let mut app = test_app();
         app.state.workspaces = vec![Workspace::test_new("test")];

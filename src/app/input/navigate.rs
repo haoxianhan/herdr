@@ -6,9 +6,9 @@ use std::{
 };
 
 use bytes::Bytes;
-use crossterm::event::KeyCode;
 #[cfg(test)]
 use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::layout::Direction;
 
 use crate::{
@@ -48,6 +48,11 @@ pub(crate) enum ActionContext {
     Direct,
     Prefix,
     Navigate,
+}
+
+fn is_navigate_escape(key: TerminalKey) -> bool {
+    key.code == KeyCode::Esc
+        || (key.code == KeyCode::Char('[') && key.modifiers == KeyModifiers::CONTROL)
 }
 
 impl App {
@@ -121,10 +126,9 @@ impl App {
     }
 
     pub(crate) fn handle_navigate_key(&mut self, raw_key: TerminalKey) {
-        let key = raw_key.as_key_event();
         self.state.update_dismissed = true;
 
-        if key.code == KeyCode::Esc || self.state.is_prefix_key(raw_key) {
+        if is_navigate_escape(raw_key) || self.state.is_prefix_key(raw_key) {
             leave_navigate_mode(&mut self.state);
             return;
         }
@@ -1273,7 +1277,7 @@ pub(crate) fn handle_navigate_key(state: &mut AppState, key: KeyEvent) {
     state.update_dismissed = true;
     let terminal_key = TerminalKey::from(key);
 
-    if state.is_prefix_key(terminal_key) || key.code == KeyCode::Esc {
+    if state.is_prefix_key(terminal_key) || is_navigate_escape(terminal_key) {
         leave_navigate_mode(state);
         return;
     }
